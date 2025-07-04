@@ -1,27 +1,38 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 
 export default function LandingPage() {
   return (
-    <main className="flex-1 flex items-center justify-center px-4">
-      <section className="container mx-auto max-w-4xl w-full text-center flex flex-col items-center justify-center gap-6 py-16 md:py-24">
-        <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight leading-tight">
-          Release notes, <span className="text-primary">automated.</span>
+    <section className="flex flex-col lg:flex-row items-center justify-center gap-12 p-6 sm:p-12 max-w-6xl w-full mx-auto rounded-3xl bg-background">
+      <div className="flex-1 max-w-lg space-y-6 text-center lg:text-left">
+        <Badge variant="outline" className="py-2 px-4 rounded-4xl mx-auto lg:mx-0 w-max hover:cursor-default gap-1">
+          <span className="text-sm font-medium">Beta access</span>
+        </Badge>
+        <h1 className="text-4xl sm:text-5xl font-extrabold leading-tight tracking-tight">
+          Your <span className="text-primary">Release‑Note</span>
+          <br className="hidden sm:block" /> Partner, On&nbsp;
+          <br className="hidden sm:block" /> Demand.
         </h1>
-        <p className="text-lg sm:text-xl md:text-2xl text-muted-foreground max-w-2xl">
-          Drag & drop your changelog and watch Expounder craft polished release notes in seconds — no config, no fuss.
+        <p className="text-muted-foreground text-lg">
+          Drag & drop your changelog and Expounder turns it into polished notes
+          for Notion, Markdown, and X—instantly.
         </p>
-        <div>
-          <Button size="lg" asChild>
-            <Link href="/dashboard" className="flex items-center gap-2">
-              Get started <ArrowRight className="h-5 w-5" />
-            </Link>
-          </Button>
-        </div>
-      </section>
-    </main>
+        <Button size="lg" asChild>
+          <Link href="/dashboard">Get started</Link>
+        </Button>
+      </div>
+      <div className="relative flex-1 w-full aspect-square max-w-md hidden lg:block ">
+        <Image
+          src="/ac.png"
+          alt="Expounder hero mockup"
+          fill
+          sizes="(max-width: 1024px) 60vw, 400px"
+        />
+      </div>
+    </section>
   );
 }

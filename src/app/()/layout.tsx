@@ -27,7 +27,6 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
-      {/* ── Header ── */}
       <header className="w-full border-b bg-background/70 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
         <div className="container mx-auto max-w-5xl px-4 py-4 flex items-center justify-between">
           <Link href="/" className="text-2xl font-bold tracking-tight">
@@ -35,7 +34,6 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
           </Link>
           <nav className="flex gap-2">
             <SignedOut>
-              {/* FAQ dialog trigger */}
               <Dialog open={open} onOpenChange={setOpen}>
                 <DialogTrigger asChild>
                   <Button variant="ghost" size="sm">
@@ -44,7 +42,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
                 </DialogTrigger>
                 <DialogContent className="sm:max-w-lg">
                   <DialogHeader>
-                    <DialogTitle>Frequently Asked Questions</DialogTitle>
+                    <DialogTitle>Frequently asked questions</DialogTitle>
                     <DialogDescription>
                       Answers to common questions about Expounder.
                     </DialogDescription>
@@ -73,7 +71,6 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
                   </Accordion>
                 </DialogContent>
               </Dialog>
-
               <Button size="sm" asChild>
                 <Link href="/signin">Sign in</Link>
               </Button>
@@ -89,18 +86,11 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
           </nav>
         </div>
       </header>
-
-      {/* ── Main ── */}
-      <main className="flex-1 flex items-center justify-center p-4">{children}</main>
-
-      {/* ── Footer ── */}
+      <main className="flex-1 flex items-center justify-center">{children}</main>
       <footer className="py-6 text-sm border-t bg-background">
         <div className="container mx-auto max-w-5xl px-4 flex flex-col md:flex-row items-center justify-between gap-4">
           <p>© {new Date().getFullYear()} Expounder. All rights reserved.</p>
-          <div className="flex gap-2">
-            <Badge variant="secondary">Open Source</Badge>
-            <Badge variant="secondary">MIT License</Badge>
-          </div>
+          Made with ❤️ by Danny Kim
         </div>
       </footer>
     </div>
