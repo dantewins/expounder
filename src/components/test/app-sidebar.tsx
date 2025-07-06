@@ -4,6 +4,7 @@ import * as React from "react"
 import {
     IconDashboard,
     IconFile,
+    IconBrandGithub,
     IconHelp,
     IconSettings,
 } from "@tabler/icons-react"
@@ -37,6 +38,11 @@ const data = {
             title: "Expounds",
             url: "/expounds",
             icon: IconFile,
+        },
+        {
+            title: "Repositories",
+            url: "/repo",
+            icon: IconBrandGithub,
         },
     ],
     navSecondary: [

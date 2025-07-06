@@ -19,7 +19,7 @@ export default function LandingPage() {
         </h1>
         <p className="text-muted-foreground text-lg">
           Drag & drop your changelog and Expounder turns it into polished notes
-          for Notion, Markdown, and X—instantly.
+          for Notion, Markdown, and X — instantly.
         </p>
         <Button size="lg" asChild>
           <Link href="/dashboard">Get started</Link>
