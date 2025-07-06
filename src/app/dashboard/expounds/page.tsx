@@ -1,103 +1,16 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import clsx from "clsx";
 import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
-  Loader2,
-  Folder as FolderIcon,
-  FileText as FileIcon,
-} from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Loader2 } from "lucide-react";
 import { Repo } from "@/lib/github";
-
-interface FileNode {
-  path: string;
-  type: "blob" | "tree";
-  children?: FileNode[];
-}
+import { FileTree, FileNode } from "@/components/file-tree";
 
 interface SummaryBlock {
   title: string;
   items: string[];
-}
-
-function FileTree({
-  nodes,
-  expanded,
-  selectedPath,
-  onToggle,
-  onSelectFile,
-  depth = 0,
-}: {
-  nodes: FileNode[];
-  expanded: Set<string>;
-  selectedPath: string | null;
-  onToggle: (path: string) => void;
-  onSelectFile: (node: FileNode) => void;
-  depth?: number;
-}) {
-  const ordered = [...nodes].sort((a, b) => {
-    if (a.type === b.type) return a.path.localeCompare(b.path);
-    return a.type === "tree" ? -1 : 1;
-  });
-
-  return (
-    <ul className={clsx("text-sm font-mono", depth && "pl-2")}>
-      {ordered.map((node) => {
-        const name = node.path.split("/").pop();
-        if (node.type === "tree") {
-          const isOpen = expanded.has(node.path);
-          return (
-            <li key={node.path} className={depth ? "pl-2" : ''}>
-              <button
-                className="flex cursor-pointer items-center gap-1 select-none"
-                onClick={() => onToggle(node.path)}
-              >
-                <FolderIcon className="h-4 w-4" /> {name}
-              </button>
-              {isOpen && node.children && (
-                <FileTree
-                  nodes={node.children}
-                  expanded={expanded}
-                  selectedPath={selectedPath}
-                  onToggle={onToggle}
-                  onSelectFile={onSelectFile}
-                  depth={depth + 1}
-                />
-              )}
-            </li>
-          );
-        }
-        return (
-          <li key={node.path} className={depth ? "pl-2" : ''}>
-            <button
-              className={clsx(
-                "flex cursor-pointer items-center gap-1",
-                selectedPath === node.path && "text-primary underline"
-              )}
-              onClick={() => onSelectFile(node)}
-            >
-              <FileIcon className="h-4 w-4" /> {name}
-            </button>
-          </li>
-        );
-      })}
-    </ul>
-  );
 }
 
 export default function ExpoundsPage() {
@@ -179,45 +92,43 @@ export default function ExpoundsPage() {
 
   return (
     <>
-      <div className="px-4 lg:px-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Select repository</CardTitle>
-            <CardDescription>
-              Pick a repo, browse its tree, preview files, then generate notes.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="flex flex-col gap-4">
-            <Select value={selectedRepoId} onValueChange={setSelectedRepoId}>
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Pick a repository" />
-              </SelectTrigger>
-              <SelectContent>
-                {repos === null ? (
-                  <div className="flex w-full items-center justify-center px-2 py-2">
-                    <Loader2 className="h-8 w-8 animate-spin" />
-                  </div>
-                ) : repos.length === 0 ? (
-                  <p className="px-4 py-2 text-sm">No repositories found.</p>
-                ) : (
-                  repos.map((repo) => (
-                    <SelectItem key={repo.id} value={repo.id.toString()}>
-                      {repo.fullName} {repo.private && "(private)"}
-                    </SelectItem>
-                  ))
-                )}
-              </SelectContent>
-            </Select>
-            {selectedRepo && (
-              <p className="text-sm text-muted-foreground">
-                {selectedRepo.description || "No description provided."}
-              </p>
-            )}
-          </CardContent>
-        </Card>
-      </div>
-      {tree && (
-        <div className="px-4 lg:px-6">
+      <Card>
+        <CardHeader>
+          <CardTitle>Select repository</CardTitle>
+          <CardDescription>
+            Pick a repo, browse its tree, preview files, then generate notes.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="flex flex-col gap-4">
+          <Select value={selectedRepoId} onValueChange={setSelectedRepoId}>
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Pick a repository" />
+            </SelectTrigger>
+            <SelectContent>
+              {repos === null ? (
+                <div className="flex w-full items-center justify-center px-2 py-2">
+                  <Loader2 className="h-8 w-8 animate-spin" />
+                </div>
+              ) : repos.length === 0 ? (
+                <p className="px-4 py-2 text-sm">No repositories found.</p>
+              ) : (
+                repos.map((repo) => (
+                  <SelectItem key={repo.id} value={repo.id.toString()}>
+                    {repo.fullName} {repo.private && "(private)"}
+                  </SelectItem>
+                ))
+              )}
+            </SelectContent>
+          </Select>
+          {selectedRepo && (
+            <p className="text-sm text-muted-foreground">
+              {selectedRepo.description || "No description provided."}
+            </p>
+          )}
+        </CardContent>
+      </Card>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {tree && (
           <Card>
             <CardHeader>
               <CardTitle>Repository file tree</CardTitle>
@@ -233,10 +144,8 @@ export default function ExpoundsPage() {
               />
             </CardContent>
           </Card>
-        </div>
-      )}
-      {selectedFile && (
-        <div className="px-4 lg:px-6">
+        )}
+        {selectedFile && (
           <Card>
             <CardHeader>
               <CardTitle>{selectedFile.path}</CardTitle>
@@ -250,19 +159,17 @@ export default function ExpoundsPage() {
               </pre>
             </CardContent>
           </Card>
-        </div>
-      )}
-      <div className="px-4 lg:px-6">
-        <Button onClick={handleGenerate} disabled={!selectedRepo || loading}>
-          {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          Generate notes
-        </Button>
-        {summary && (
-          <Button variant="secondary" onClick={handleSave}>
-            Save to dashboard
-          </Button>
         )}
       </div>
+      <Button onClick={handleGenerate} disabled={!selectedRepo || loading} className="!w-[150px]">
+        {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+        Generate notes
+      </Button>
+      {summary && (
+        <Button variant="secondary" onClick={handleSave}>
+          Save to dashboard
+        </Button>
+      )}
       {summary && (
         <section className="space-y-6 px-4 lg:px-6">
           {summary.map((block) => (
