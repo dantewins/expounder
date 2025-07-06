@@ -9,9 +9,9 @@ import {
     IconSettings,
 } from "@tabler/icons-react"
 
-import { NavMain } from "@/components/test/nav-main"
-import { NavSecondary } from "@/components/test/nav-secondary"
-import { NavUser } from "@/components/test/nav-user"
+import { NavMain } from "@/components/sidebar/nav-main"
+import { NavSecondary } from "@/components/sidebar/nav-secondary"
+import { NavUser } from "@/components/sidebar/nav-user"
 import {
     Sidebar,
     SidebarContent,

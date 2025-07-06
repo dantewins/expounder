@@ -27,8 +27,8 @@ export default function LandingPage() {
       </div>
       <div className="relative flex-1 w-full aspect-square max-w-md hidden lg:block ">
         <Image
-          src="/ac.png"
-          alt="Expounder hero mockup"
+          src="/hero.png"
+          alt="rocket"
           fill
           sizes="(max-width: 1024px) 60vw, 400px"
         />
