@@ -3,10 +3,11 @@
 import * as React from "react"
 import {
     IconDashboard,
-    IconFile,
+    IconFiles,
     IconBrandGithub,
     IconHelp,
     IconSettings,
+    IconBook2,
 } from "@tabler/icons-react"
 
 import { NavMain } from "@/components/sidebar/nav-main"
@@ -37,15 +38,20 @@ const data = {
         {
             title: "Expounds",
             url: "/expounds",
-            icon: IconFile,
+            icon: IconFiles,
         },
         {
             title: "Repositories",
             url: "/repo",
-            icon: IconBrandGithub,
+            icon: IconBook2,
         },
     ],
     navSecondary: [
+        {
+            title: "Reconnect",
+            url: "#",
+            icon: IconBrandGithub,
+        },
         {
             title: "Settings",
             url: "#",

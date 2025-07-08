@@ -1,5 +1,6 @@
 "use client";
 
+import { JSX } from "react";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -7,11 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Loader2 } from "lucide-react";
 import { Repo } from "@/lib/github";
 import { FileTree, FileNode } from "@/components/file-tree";
-
-interface SummaryBlock {
-  title: string;
-  items: string[];
-}
+import { ReadmeBlock } from "@/lib/schemas";
 
 export default function ExpoundsPage() {
   const [repos, setRepos] = useState<Repo[] | null>(null);
@@ -23,7 +20,8 @@ export default function ExpoundsPage() {
   const [selectedFile, setSelectedFile] = useState<FileNode | null>(null);
   const [fileText, setFileText] = useState<string>("");
 
-  const [summary, setSummary] = useState<SummaryBlock[] | null>(null);
+  const [summary, setSummary] = useState<ReadmeBlock[] | null>(null);
+  const [previewOpen, setPreviewOpen] = useState(false);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -75,8 +73,14 @@ export default function ExpoundsPage() {
     if (!selectedRepo) return;
     setLoading(true);
     setSummary(null);
-    const res = await fetch(`/api/summarize?repoId=${selectedRepo.id}`);
-    if (res.ok) setSummary(await res.json());
+    const res = await fetch(`/api/core/expound`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ ownerRepo: selectedRepo.fullName, description: selectedRepo.description || "" }),
+    });
+    if (res.ok) setSummary(await res.json() as ReadmeBlock[]);
     setLoading(false);
   }
 
@@ -127,7 +131,7 @@ export default function ExpoundsPage() {
           )}
         </CardContent>
       </Card>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className={`grid grid-cols-1 ${selectedFile ? 'md:grid-cols-2' : ''} gap-4 ${!tree ? "hidden" : ""}`}>
         {tree && (
           <Card>
             <CardHeader>
@@ -150,7 +154,7 @@ export default function ExpoundsPage() {
             <CardHeader>
               <CardTitle>{selectedFile.path}</CardTitle>
               <CardDescription>
-                Read-only preview · {fileText.length.toLocaleString()} bytes
+                Read-only preview - {fileText.length.toLocaleString()} bytes
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -161,31 +165,103 @@ export default function ExpoundsPage() {
           </Card>
         )}
       </div>
-      <Button onClick={handleGenerate} disabled={!selectedRepo || loading} className="!w-[150px]">
-        {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-        Generate notes
-      </Button>
-      {summary && (
-        <Button variant="secondary" onClick={handleSave}>
-          Save to dashboard
+      <div className="grid w-full gap-2 md:inline-flex">
+        <Button onClick={handleGenerate} disabled={!selectedRepo || loading} className="w-full lg:w-[150px]">
+          {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+          Generate notes
         </Button>
-      )}
-      {summary && (
-        <section className="space-y-6 px-4 lg:px-6">
-          {summary.map((block) => (
-            <Card key={block.title} className="border-muted/50">
-              <CardHeader>
-                <CardTitle>{block.title}</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ul className="list-disc list-inside space-y-1">
-                  {block.items.map((item) => (
-                    <li key={item}>{item}</li>
-                  ))}
-                </ul>
-              </CardContent>
-            </Card>
-          ))}
+        {summary && (
+          <Button variant="secondary" onClick={() => setPreviewOpen(!previewOpen)} className="w-full lg:w-[150px]">
+            Preview
+          </Button>
+        )}
+      </div>
+      {summary && previewOpen && (
+        <section className="space-y-6 ">
+          {summary.map((block, idx) => {
+            switch (block.type) {
+              case "heading": {
+                const H = `h${block.level}` as keyof JSX.IntrinsicElements;
+                return (
+                  <H key={idx} className="font-semibold scroll-mt-20">
+                    {block.text}
+                  </H>
+                );
+              }
+              case "paragraph":
+                return (
+                  <p key={idx} className="leading-relaxed">
+                    {block.text}
+                  </p>
+                );
+              case "list": {
+                const ListTag = block.ordered ? "ol" : "ul";
+                return (
+                  <ListTag key={idx} className="list-inside list-disc space-y-1">
+                    {block.items.map((li: string, j: number) => (
+                      <li key={j}>{li}</li>
+                    ))}
+                  </ListTag>
+                );
+              }
+              case "code":
+                return (
+                  <pre
+                    key={idx}
+                    className="rounded bg-muted/40 p-3 overflow-auto text-sm font-mono"
+                  >
+                    <code className={`language-${block.language}`}>{block.code}</code>
+                  </pre>
+                );
+              case "image":
+                return (
+                  <figure key={idx} className="flex flex-col items-center gap-1">
+                    <img
+                      src={block.url}
+                      alt={block.alt}
+                      className="max-w-full rounded"
+                    />
+                    {block.alt && (
+                      <figcaption className="text-sm text-muted-foreground">
+                        {block.alt}
+                      </figcaption>
+                    )}
+                  </figure>
+                );
+              case "table":
+                return (
+                  <div key={idx} className="overflow-x-auto">
+                    <table className="min-w-full border text-sm">
+                      <thead>
+                        <tr>
+                          {block.headers.map((h: string, j: number) => (
+                            <th
+                              key={j}
+                              className="border px-2 py-1 font-medium text-left"
+                            >
+                              {h}
+                            </th>
+                          ))}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {block.rows.map((row: string[], r: number) => (
+                          <tr key={r}>
+                            {row.map((cell: string, c: number) => (
+                              <td key={c} className="border px-2 py-1">
+                                {cell}
+                              </td>
+                            ))}
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                );
+              default:
+                return null;
+            }
+          })}
         </section>
       )}
       {loading && (

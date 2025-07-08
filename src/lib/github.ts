@@ -87,3 +87,33 @@ export async function getRepoFileTree(token: string, repoId: string): Promise<Fi
     }
     return root;
 }
+
+// returns a raw git tree which is faster for summarising large repositories
+export async function fetchRepoTree(token: string, owner: string, repo: string) {
+    const octokit = getOctokit(token);
+    const { data: repoMeta } = await octokit.rest.repos.get({ owner, repo });
+    const { data: ref } = await octokit.rest.git.getRef({
+        owner,
+        repo,
+        ref: `heads/${repoMeta.default_branch}`,
+    });
+
+    const commitSha = ref.object.sha;
+
+    const { data: tree } = await octokit.rest.git.getTree({
+        owner,
+        repo,
+        tree_sha: commitSha,
+        recursive: "1",
+    });
+
+    return tree.tree;
+}
+
+// returns the content of a blob in a repository as text
+export async function fetchBlobText(token: string, owner: string, repo: string, sha: string) {
+    const octokit = getOctokit(token);
+    const { data } = await octokit.rest.git.getBlob({ owner, repo, file_sha: sha });
+
+    return Buffer.from(data.content, "base64").toString("utf8");
+}

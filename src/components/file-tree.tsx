@@ -1,3 +1,5 @@
+"use client"
+
 import clsx from "clsx";
 import { Folder as FolderIcon, FileText as FileIcon } from "lucide-react";
 
