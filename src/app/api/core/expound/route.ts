@@ -16,18 +16,22 @@ export async function POST(req: NextRequest) {
 
     const { ownerRepo, description } = await req.json();
     if (!ownerRepo || !description) {
-        return NextResponse.json({ error: "Missing ownerRepo or description" }, { status: 400 });
+        return NextResponse.json(
+            { error: "Missing ownerRepo or description" },
+            { status: 400 },
+        );
     }
 
     const [owner, repoName] = ownerRepo.split("/");
 
     const tree = await fetchRepoTree(token, owner, repoName);
-
     const codeFiles = tree.filter(
         (n: any) =>
             n.type === "blob" &&
             n.size! < 100_000 &&
-            !/\.(png|jpe?g|gif|svg|ico|pdf|zip|tar|gz|mp4|mp3|mov|woff2?)$/i.test(n.path)
+            !/\.(png|jpe?g|gif|svg|ico|pdf|zip|tar|gz|mp4|mp3|mov|woff2?)$/i.test(
+                n.path,
+            ),
     );
 
     const fileSummaries: string[] = [];
@@ -40,22 +44,20 @@ export async function POST(req: NextRequest) {
             { role: "system", content: "You are an expert software analyst." },
             {
                 role: "user",
-                content:
-                    `File path: ${node.path}\n\n` +
-                    "Summarise the intention and key API surface of this file in ≤ 120 words. " +
-                    "Omit obvious framework boilerplate.",
+                content: `File path: ${node.path}\n\nSummarise the intention and key API surface of this file in ≤ 120 words. Omit obvious framework boilerplate.`,
             },
             { role: "user", content: "```" + content.slice(0, 10_000) + "```" },
         ];
 
         const { choices } = await openai.chat.completions.create({
-            model: "gpt-4o-mini",
+            model: "o4-mini",
             messages: chunkPrompt,
-            max_tokens: 250,
-            temperature: 0.2,
+            max_completion_tokens: 1000,
         });
 
-        fileSummaries.push(`◾ **${node.path}** – ${choices[0].message.content!.trim()}`);
+        fileSummaries.push(
+            `◾ **${node.path}** – ${choices[0].message.content!.trim()}`,
+        );
     }
 
     const synthPrompt: ChatCompletionMessageParam[] = [
@@ -66,25 +68,14 @@ export async function POST(req: NextRequest) {
         },
         {
             role: "user",
-            content:
-                `Using the digests below, create a **full README.md** that follows common GitHub conventions. ` +
-                `Include:\n` +
-                `• H1 project title and short tagline\n` +
-                `• Table of Contents\n` +
-                `• Key features (bullets)\n` +
-                `• Prerequisites / environment variables if any\n` +
-                `• Step-by-step installation & local dev commands\n` +
-                `• Basic usage examples (code blocks)\n` +
-                `• How to run tests / lint / build\n` +
-                `• Contributing section (fork → branch → PR)\n` +
-                `• License\n\n` +
-                `Return **only** via the function call below; the README must be pure Markdown, no HTML.\n\n` +
-                `Digests:\n\n${fileSummaries.join("\n")}`,
+            content: `Using the digests below, create a *full* README.md. Follow GitHub conventions and **respond *only* by calling the \`write_readme\` function**.\n\nDigests:\n\n${fileSummaries.join(
+                "\n",
+            )}`,
         },
     ];
 
     const { choices } = await openai.chat.completions.create({
-        model: "gpt-4o",
+        model: "o4-mini",
         messages: synthPrompt,
         tools: [
             {
@@ -97,19 +88,25 @@ export async function POST(req: NextRequest) {
             },
         ],
         tool_choice: { type: "function", function: { name: "write_readme" } },
-        max_tokens: 2000,
-        temperature: 0.3,
+        max_completion_tokens: 2000,
     });
 
     const toolCall = choices[0].message.tool_calls?.[0];
+
     if (!toolCall) {
+        console.warn("LLM skipped tool call – returning raw content.");
+        const rawReadme = choices[0].message.content ?? "";
+        return NextResponse.json([{ type: "markdown", text: rawReadme }]);
+    }
+
+    try {
+        const safeReadme = JSON.parse(toolCall.function.arguments);
+        return NextResponse.json(safeReadme.blocks);
+    } catch (e) {
+        console.error("Failed to parse tool_call arguments:", e);
         return NextResponse.json(
-            { error: "LLM did not provide a tool call." },
+            { error: "Malformed tool_call from OpenAI." },
             { status: 500 },
         );
     }
-
-    const safeReadme = JSON.parse(toolCall.function.arguments);
-
-    return NextResponse.json(safeReadme.blocks);
 }
