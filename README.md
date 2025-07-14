@@ -20,14 +20,14 @@ Expounder streamlines the process of turning a raw CHANGELOG.md into professiona
 
 ```mermaid
 flowchart LR
-  A[CHANGELOG.md] --> B(Parser)
-  B --> C[Embedding Service (OpenAI)]
-  C --> D[Clusterer]
-  D --> E[Formatter]
-  E --> F[Notion Export]
-  E --> G[Tweet Thread Export]
-  F --> H[Notion API / File]
-  G --> I[Console / Clipboard]
+  A["CHANGELOG.md"]        --> B(Parser)
+  B                        --> C["Embedding Service (OpenAI)"]
+  C                        --> D[Clusterer]
+  D                        --> E[Formatter]
+  E                        --> F["Notion Export"]
+  E                        --> G["Tweet Thread Export"]
+  F                        --> H["Notion API / File"]
+  G                        --> I["Console / Clipboard"]
 ```
 
 ## Features
