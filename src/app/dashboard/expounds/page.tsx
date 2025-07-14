@@ -10,28 +10,39 @@ import { Repo } from "@/lib/github";
 import { FileTree, FileNode } from "@/components/file-tree";
 import { ReadmeBlock } from "@/lib/schemas";
 
-function blocksToMarkdown(blocks: ReadmeBlock[]): string {
-  return blocks
-    .map(b => {
-      switch (b.type) {
-        case "heading": return `${"#".repeat(b.level)} ${b.text}\n`;
-        case "paragraph": return `${b.text}\n`;
-        case "list":
-          return b.items
-            .map((li, i) => `${b.ordered ? `${i + 1}.` : "-"} ${li}`)
-            .join("\n") + "\n";
-        case "code": return `\n\`\`\`${b.language || ""}\n${b.code}\n\`\`\`\n`;
-        case "image": return `![${b.alt || ""}](${b.url})\n`;
-        case "table":
-          const header = `| ${b.headers.join(" | ")} |\n`;
-          const sep = `| ${b.headers.map(() => "---").join(" | ")} |\n`;
-          const rows = b.rows.map(r => `| ${r.join(" | ")} |`).join("\n") + "\n";
-          return header + sep + rows;
-        default: return "";
-      }
-    })
-    .join("\n")
-    .replace(/\n{3,}/g, "\n\n"); // collapse extra blank lines
+export function blocksToMarkdown(blocks: ReadmeBlock[]): string {
+  return (
+    blocks
+      .map((b) => {
+        switch (b.type) {
+          case "heading":
+            return `${"#".repeat(b.level)} ${b.text}\n`;
+          case "paragraph":
+            return `${b.text}\n`;
+          case "list":
+            return (
+              b.items
+                .map((li, i) => `${b.ordered ? `${i + 1}.` : "-"} ${li}`)
+                .join("\n") + "\n"
+            );
+          case "code":
+            return `\n\u0060\u0060\u0060${b.language ?? ""}\n${b.code}\n\u0060\u0060\u0060\n`;
+          case "image":
+            return `![${b.alt ?? ""}](${b.url})\n`;
+          case "table": {
+            const header = `| ${b.headers.join(" | ")} |\n`;
+            const sep = `| ${b.headers.map(() => "---").join(" | ")} |\n`;
+            const rows =
+              b.rows.map((r) => `| ${r.join(" | ")} |`).join("\n") + "\n";
+            return header + sep + rows;
+          }
+          default:
+            return "";
+        }
+      })
+      .join("\n")
+      .replace(/\n{3,}/g, "\n\n")
+  );
 }
 
 export default function ExpoundsPage() {
@@ -206,7 +217,7 @@ export default function ExpoundsPage() {
         )}
       </div>
       {summary && previewOpen && (
-        <section className="space-y-6 ">
+        <section className="space-y-6">
           {summary.map((block, idx) => {
             switch (block.type) {
               case "heading": {
@@ -224,10 +235,13 @@ export default function ExpoundsPage() {
                   </p>
                 );
               case "list": {
-                const ListTag = block.ordered ? "ol" : "ul";
+                const ListTag = (block.ordered ? "ol" : "ul") as keyof JSX.IntrinsicElements;
                 return (
-                  <ListTag key={idx} className="list-inside list-disc space-y-1">
-                    {block.items.map((li: string, j: number) => (
+                  <ListTag
+                    key={idx}
+                    className={`list-inside ${block.ordered ? "list-decimal" : "list-disc"} space-y-1`}
+                  >
+                    {block.items.map((li, j) => (
                       <li key={j}>{li}</li>
                     ))}
                   </ListTag>
@@ -239,21 +253,15 @@ export default function ExpoundsPage() {
                     key={idx}
                     className="rounded bg-muted/40 p-3 overflow-auto text-sm font-mono"
                   >
-                    <code className={`language-${block.language}`}>{block.code}</code>
+                    <code className={`language-${block.language ?? ""}`}>{block.code}</code>
                   </pre>
                 );
               case "image":
                 return (
                   <figure key={idx} className="flex flex-col items-center gap-1">
-                    <img
-                      src={block.url}
-                      alt={block.alt}
-                      className="max-w-full rounded"
-                    />
+                    <img src={block.url} alt={block.alt ?? ""} className="max-w-full rounded" />
                     {block.alt && (
-                      <figcaption className="text-sm text-muted-foreground">
-                        {block.alt}
-                      </figcaption>
+                      <figcaption className="text-sm text-muted-foreground">{block.alt}</figcaption>
                     )}
                   </figure>
                 );
@@ -263,20 +271,17 @@ export default function ExpoundsPage() {
                     <table className="min-w-full border text-sm">
                       <thead>
                         <tr>
-                          {block.headers.map((h: string, j: number) => (
-                            <th
-                              key={j}
-                              className="border px-2 py-1 font-medium text-left"
-                            >
+                          {block.headers.map((h, j) => (
+                            <th key={j} className="border px-2 py-1 font-medium text-left">
                               {h}
                             </th>
                           ))}
                         </tr>
                       </thead>
                       <tbody>
-                        {block.rows.map((row: string[], r: number) => (
+                        {block.rows.map((row, r) => (
                           <tr key={r}>
-                            {row.map((cell: string, c: number) => (
+                            {row.map((cell, c) => (
                               <td key={c} className="border px-2 py-1">
                                 {cell}
                               </td>

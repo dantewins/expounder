@@ -2,7 +2,10 @@
 
 Drag-drop your CHANGELOG.md; app clusters commits using OpenAI embeddings and outputs a polished Notion-style release page + a copyable tweet thread.
 
-[![npm version](https://img.shields.io/npm/v/expounder.svg)](https://www.npmjs.com/package/expounder) [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE) [![Build Status](https://github.com/dantewins/expounder/actions/workflows/ci.yml/badge.svg)](https://github.com/dantewins/expounder/actions) [![Downloads](https://img.shields.io/npm/dm/expounder.svg)](https://www.npmjs.com/package/expounder)
+- [![npm version](https://img.shields.io/npm/v/expounder.svg)](https://www.npmjs.com/package/expounder)
+- [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+- [![Build Status](https://github.com/dantewins/expounder/actions/workflows/ci.yml/badge.svg)](https://github.com/dantewins/expounder/actions)
+- [![Downloads](https://img.shields.io/npm/dm/expounder.svg)](https://www.npmjs.com/package/expounder)
 
 ## Overview
 
@@ -150,8 +153,6 @@ npm test
 
 ## Contributing
 
-Contributions are welcome! Please follow these steps to get started:
-
 1. Fork the repository
 2. Create a feature branch (`git checkout -b feature/YourFeature`)
 3. Write tests for your changes
@@ -161,7 +162,7 @@ Contributions are welcome! Please follow these steps to get started:
 
 ## License
 
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License. See the LICENSE file for details.
 
 ## Acknowledgements
 
