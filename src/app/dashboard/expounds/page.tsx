@@ -10,6 +10,30 @@ import { Repo } from "@/lib/github";
 import { FileTree, FileNode } from "@/components/file-tree";
 import { ReadmeBlock } from "@/lib/schemas";
 
+function blocksToMarkdown(blocks: ReadmeBlock[]): string {
+  return blocks
+    .map(b => {
+      switch (b.type) {
+        case "heading": return `${"#".repeat(b.level)} ${b.text}\n`;
+        case "paragraph": return `${b.text}\n`;
+        case "list":
+          return b.items
+            .map((li, i) => `${b.ordered ? `${i + 1}.` : "-"} ${li}`)
+            .join("\n") + "\n";
+        case "code": return `\n\`\`\`${b.language || ""}\n${b.code}\n\`\`\`\n`;
+        case "image": return `![${b.alt || ""}](${b.url})\n`;
+        case "table":
+          const header = `| ${b.headers.join(" | ")} |\n`;
+          const sep = `| ${b.headers.map(() => "---").join(" | ")} |\n`;
+          const rows = b.rows.map(r => `| ${r.join(" | ")} |`).join("\n") + "\n";
+          return header + sep + rows;
+        default: return "";
+      }
+    })
+    .join("\n")
+    .replace(/\n{3,}/g, "\n\n"); // collapse extra blank lines
+}
+
 export default function ExpoundsPage() {
   const [repos, setRepos] = useState<Repo[] | null>(null);
   const [selectedRepoId, setSelectedRepoId] = useState<string>("");
@@ -73,28 +97,30 @@ export default function ExpoundsPage() {
     if (!selectedRepo) return;
     setLoading(true);
     setSummary(null);
-    const res = await fetch(`/api/core/expound`, {
+    const res = await fetch("/api/core/expound", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ ownerRepo: selectedRepo.fullName, description: selectedRepo.description || "" }),
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        ownerRepo: selectedRepo.fullName,
+        description: selectedRepo.description || "",
+      }),
     });
     if (res.ok) {
       const json = await res.json();
-      setSummary(json.blocks as ReadmeBlock[]);
+      const blocks = json.blocks as ReadmeBlock[];
+      setSummary(blocks);
+      const markdown = blocksToMarkdown(blocks);
+      const blob = new Blob([markdown], { type: "text/markdown" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "README.md";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
     }
     setLoading(false);
-  }
-
-  function handleSave() {
-    if (!summary || !selectedRepo) return;
-    const notes = JSON.parse(localStorage.getItem("expounder_notes") || "[]");
-    localStorage.setItem(
-      "expounder_notes",
-      JSON.stringify([...notes, { summary, date: Date.now(), repo: selectedRepo }])
-    );
-    window.location.href = "/dashboard";
   }
 
   return (

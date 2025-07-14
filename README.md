@@ -1,110 +1,170 @@
-<div align="center">
-  <a href="https://shipwrecked.hackclub.com/?t=ghrm" target="_blank">
-    <img src="https://hc-cdn.hel1.your-objectstorage.com/s/v3/739361f1d440b17fc9e2f74e49fc185d86cbec14_badge.png"
-         alt="This project is part of Shipwrecked, the world's first hackathon on an island!"
-         style="width: 35%;">
-  </a>
-</div>
+# Expounder
 
-<h1 align="center">Expounder</h1>
+Drag-drop your CHANGELOG.md; app clusters commits using OpenAI embeddings and outputs a polished Notion-style release page + a copyable tweet thread.
 
-<p align="center"><b>Automated, AI‑powered release‑note generator</b></p>
+[![npm version](https://img.shields.io/npm/v/expounder.svg)](https://www.npmjs.com/package/expounder) [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE) [![Build Status](https://github.com/dantewins/expounder/actions/workflows/ci.yml/badge.svg)](https://github.com/dantewins/expounder/actions) [![Downloads](https://img.shields.io/npm/dm/expounder.svg)](https://www.npmjs.com/package/expounder)
 
----
+## Overview
 
-## ✨ Features
+Expounder streamlines the process of turning a raw CHANGELOG.md into professional release notes and a tweet-ready thread. By leveraging OpenAI embeddings to cluster commits, it groups related changes and formats them into a clean Notion-style page. You get:
 
-|                            |                                                                            |
-| -------------------------- | -------------------------------------------------------------------------- |
-| **AI‑clustered summaries** | GPT‑4o groups commits into human‑readable changelogs.                      |
-| **One‑click exports**      | Push notes straight to **Notion**, **Markdown**, or **X/Twitter** threads. |
-| **Secure & serverless**    | Runs on Vercel; user data stored in MongoDB Atlas.                         |
-| **Open source**            | MIT‑licensed. Pull requests welcome!                                       |
+- A structured, human-friendly release summary
+- An auto-generated tweet thread for social sharing
+- Configurable clustering and templates
+- CLI and programmatic API for integration
 
----
+## Architecture
 
-## 🏗️ Tech Stack
-
-| Layer     | Tech                                                               |
-| --------- | ------------------------------------------------------------------ |
-| Front‑end | Next.js 14 (App Router), React, TypeScript, shadcn/ui, TailwindCSS |
-| Auth      | Clerk (social login + JWT)                                         |
-| AI        | OpenAI GPT‑4o                                                      |
-| Database  | MongoDB Atlas (Mongoose 8)                                         |
-| Hosting   | Vercel (Edge & Node serverless functions)                          |
-
----
-
-## 🚀 Quick Start
-
-```bash
-# 1. Clone
-$ git clone https://github.com/your‑username/expounder.git && cd expounder
-
-# 2. Install deps
-$ pnpm install
-
-# 3. Copy env vars
-$ cp .env.example .env.local
-# → fill in CLERK + OPENAI + MONGODB creds
-
-# 4. Run dev server
-$ pnpm dev
-
-# open http://localhost:3000
+```mermaid
+flowchart LR
+  A[CHANGELOG.md] --> B(Parser)
+  B --> C[Embedding Service (OpenAI)]
+  C --> D[Clusterer]
+  D --> E[Formatter]
+  E --> F[Notion Export]
+  E --> G[Tweet Thread Export]
+  F --> H[Notion API / File]
+  G --> I[Console / Clipboard]
 ```
 
-### Environment Variables
+## Features
 
-| Key                                 | Example                                                | Note                     |
-| ----------------------------------- | ------------------------------------------------------ | ------------------------ |
-| `OPENAI_API_KEY`                    | `sk‑...`                                               | GPT‑4o key               |
-| `CLERK_SECRET_KEY`                  | `sk_live_...`                                          | Get from Clerk dashboard |
-| `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | `pk_live_...`                                          | Public key               |
-| `MONGODB_URI`                       | `mongodb+srv://user:pass@cluster0.mongo.net/expounder` | Atlas connection         |
+- Drag-and-drop or specify CHANGELOG.md input
+- Automatic commit clustering via OpenAI embeddings
+- Configurable model and cluster count
+- Notion-style markdown export
+- Copyable tweet thread generation
+- CLI tool and JavaScript/TypeScript API
+- Support for custom templates and prompts
 
----
+## Installation
 
-## 🛠️ Scripts
+```bash
+# Install globally
+npm install -g expounder
+# or
+yarn global add expounder
 
-| Command      | What it does                         |
-| ------------ | ------------------------------------ |
-| `pnpm dev`   | Run local dev server with hot reload |
-| `pnpm build` | Production build                     |
-| `pnpm start` | Start prod server (after build)      |
-| `pnpm lint`  | ESLint + TypeScript type check       |
+# Install locally in a project
+npm install --save expounder
+```
 
----
+## Configuration
 
-## 🖼️ Screenshots
+Expounder requires an OpenAI API key. Set it via an environment variable:
 
-| Landing                                  | Dashboard                                    |
-| ---------------------------------------- | -------------------------------------------- |
-| ![Landing](./public/screens/landing.png) | ![Dashboard](./public/screens/dashboard.png) |
+```bash
+export OPENAI_API_KEY=your_api_key_here
+```
 
----
+Optionally, you can create a `.expounderrc.json` in your project root to override defaults:
 
-## 🛳️ Deploy on Vercel
+```json
+{
+  "input": "CHANGELOG.md",
+  "model": "gpt-3.5-turbo-16k",
+  "clusters": 5,
+  "output": {
+    "notion": "notion-release.md",
+    "tweets": "tweet-thread.txt"
+  }
+}
+```
 
-1. Click **“Import Project”** on Vercel.
-2. Add the environment variables from `.env.local`.
-3. Choose **“Deploy”.**
+## Usage
 
-A serverless instance will spin up with Edge runtime for AI calls and Node runtime for MongoDB.
+### CLI
 
----
+```bash
+# Run with defaults from .expounderrc.json
+expounder
 
-## 👥 Contributing
+# Override options
+expounder --input CHANGELOG.md --clusters 4 --notion summary.md --tweets thread.txt
 
-1. **Fork** the repo & create your branch: `git checkout -b feat/my‑feature`
-2. **Commit** your changes: `git commit -m "feat: add cool thing"`
-3. **Push** to the branch: `git push origin feat/my‑feature`
-4. Open a **Pull Request**.
+# Short flags
+expounder -i CHANGELOG.md -c 4 -n summary.md -t thread.txt
+```
 
-We follow Conventional Commits + Semantic Pull Requests.
+### API
 
----
+```javascript
+import expounder from 'expounder';
 
-## 📜 License
+(async () => {
+  const result = await expounder({
+    input: 'CHANGELOG.md',
+    model: 'gpt-3.5-turbo-16k',
+    clusters: 5,
+    openaiApiKey: process.env.OPENAI_API_KEY
+  });
 
-[MIT](LICENSE) © 2025 Expounder Team
+  // Markdown page for Notion
+  console.log(result.notion);
+
+  // Copy-and-paste tweet thread
+  console.log(result.tweets);
+})();
+```
+
+## Folder Structure
+
+```bash
+.
+├── bin/
+│   └── cli.js         # Command-line entrypoint
+├── src/
+│   ├── parser.js      # CHANGELOG.md parser
+│   ├── embedder.js    # OpenAI embedding calls
+│   ├── clusterer.js   # Commit clustering logic
+│   ├── formatter.js   # Markdown formatting
+│   ├── index.js       # Core API export
+│   └── utils.js       # Shared utilities
+├── tests/             # Jest test suites
+│   ├── parser.test.js
+│   ├── clusterer.test.js
+│   └── formatter.test.js
+├── .expounderrc.json  # Optional config
+├── CHANGELOG.md       # Input changelog
+├── package.json
+├── LICENSE
+└── README.md
+```
+
+## Tests
+
+We use Jest for unit and integration tests. Make sure your OpenAI API key is set for any tests that call the API.
+
+```bash
+npm test
+```
+
+## Roadmap
+
+- v1.0: Stable CLI & core functionality
+- v1.1: Custom templates & prompts
+- v1.2: Direct Notion API publishing
+- v2.0: Plugin system & extensibility
+- v2.1: Additional export formats (HTML, PDF)
+- v3.0: Web UI with drag-and-drop
+
+## Contributing
+
+Contributions are welcome! Please follow these steps to get started:
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/YourFeature`)
+3. Write tests for your changes
+4. Ensure all tests pass (`npm test`)
+5. Commit with clear, conventional commit messages
+6. Open a pull request and describe your changes
+
+## License
+
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+
+## Acknowledgements
+
+- Thanks to OpenAI for the embeddings API
+- Mermaid.js for architecture diagram support
+- The Node.js community and all open-source contributors
