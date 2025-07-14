@@ -72,12 +72,13 @@ export async function POST(req: NextRequest) {
         "Analyze the repository at ${ownerRepo}, including its file structure, code, and documentation files.",
         "Generate a clear, comprehensive README based on the actual content and functionality of the repository.",
         "Do not rely on the existing repository description or README, as they may be outdated.",
+        "Use a professional yet approachable tone, ensuring the language is clear and accessible to developers of various skill levels.",
         "Include the following sections in the README only if they are relevant to the codebase:",
         "- Title: The name of the repository.",
         "- Tagline: A brief, one-sentence description of what the repository does.",
-        "- Badges: Include relevant badges (e.g., build status, version, license) right after the title and tagline.",
-        "- Overview: A detailed description of the repository's purpose and key features.",
-        "- Architecture: Provide a Mermaid diagram illustrating the high-level architecture, showing main components and their interactions. Ensure correct Mermaid syntax, using standard node shapes like rectangles `id[label]`, and enclose labels with special characters in quotes.",
+        "- Badges: Include relevant badges (e.g., build status, version, license) right after the title and tagline. Ensure they are on one line with a single preceding space (e.g., \"![Build]...(...) \").",
+        "- Overview: A detailed description of the repository’s purpose and key features.",
+        "- Architecture: If the repository has a discernible architecture (e.g., frontend, backend, APIs, databases, external services), provide a Mermaid diagram illustrating the high-level architecture. Show main components and their interactions. Use standard Mermaid syntax, such as rectangles for components (`component[\"label\"]`) and arrows for interactions (`-->`, `-->`). Enclose labels with special characters in quotes. If the architecture is simple or unclear, provide a brief textual description instead.",
         "- Features: List the main features of the tool or library.",
         "- Installation: Instructions on how to install the tool or library.",
         "- Configuration: Any configuration options or settings (omit if not applicable).",
@@ -88,8 +89,7 @@ export async function POST(req: NextRequest) {
         "- License: The license under which the repository is released.",
         "- Acknowledgements: Credits or thanks to contributors or dependencies.",
         "If a section is not applicable (e.g., no CLI, no tests, no configuration options), omit it.",
-        "Ensure all content is accurate and reflects the actual functionality based on the code and files in the repository.",
-        "Badges must be on ONE line with a single preceding space (e.g. \"[![Build]...](...) \")."
+        "Ensure all content is accurate and reflects the actual functionality based on the code and files in the repository. Do not make assumptions or include speculative information."
     ].join("\n");
 
     const response = await openai.responses.create({
