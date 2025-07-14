@@ -1,171 +1,94 @@
-# Expounder
+# Expounder Client (Web Dashboard)
 
-Drag-drop your CHANGELOG.md; app clusters commits using OpenAI embeddings and outputs a polished Notion-style release page + a copyable tweet thread.
+Web dashboard for exploring GitHub repositories and generating comprehensive README files using OpenAI.
 
-- [![npm version](https://img.shields.io/npm/v/expounder.svg)](https://www.npmjs.com/package/expounder)
-- [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-- [![Build Status](https://github.com/dantewins/expounder/actions/workflows/ci.yml/badge.svg)](https://github.com/dantewins/expounder/actions)
-- [![Downloads](https://img.shields.io/npm/dm/expounder.svg)](https://www.npmjs.com/package/expounder)
+- ![Version](https://img.shields.io/badge/version-0.1.0-blue.svg) 
 
 ## Overview
 
-Expounder streamlines the process of turning a raw CHANGELOG.md into professional release notes and a tweet-ready thread. By leveraging OpenAI embeddings to cluster commits, it groups related changes and formats them into a clean Notion-style page. You get:
-
-- A structured, human-friendly release summary
-- An auto-generated tweet thread for social sharing
-- Configurable clustering and templates
-- CLI and programmatic API for integration
+Expounder Client is a Next.js (v15.3.4) web application that enables authenticated users to browse their GitHub repositories, explore file trees, preview file contents, and generate clear, comprehensive README files for any repository. It leverages Octokit for interacting with GitHub via custom API routes  and employs OpenAI’s embedding and file search capabilities to summarise and generate README content at scale . Authentication is handled by Clerk for secure access.
 
 ## Architecture
 
 ```mermaid
 flowchart LR
-  A["CHANGELOG.md"]        --> B(Parser)
-  B                        --> C["Embedding Service (OpenAI)"]
-  C                        --> D[Clusterer]
-  D                        --> E[Formatter]
-  E                        --> F["Notion Export"]
-  E                        --> G["Tweet Thread Export"]
-  F                        --> H["Notion API / File"]
-  G                        --> I["Console / Clipboard"]
+  subgraph User Interface
+    A[Browser UI]
+  end
+  A -->|1. List Repos| B[/api/github/repos/]
+  A -->|2. Get File Tree| C[/api/github/tree?repoId={id}/]
+  A -->|3. Get File| D[/api/github/file?owner={owner}&path={path}/]
+  A -->|4. Generate README| E[/api/core/expound/]
+
+  subgraph GitHub Integration
+    B --> G[Octokit → GitHub API]
+    C --> G
+    D --> G
+  end
+
+  subgraph OpenAI Integration
+    E --> H[Fetch Repo Tree & Blobs]
+    H --> G
+    H --> I[OpenAI Embeddings & VectorStore]
+    I --> J[OpenAI File Search Tool]
+    J --> I
+    I --> E
+  end
+
+  E -->|5. Download| A
 ```
 
 ## Features
 
-- Drag-and-drop or specify CHANGELOG.md input
-- Automatic commit clustering via OpenAI embeddings
-- Configurable model and cluster count
-- Notion-style markdown export
-- Copyable tweet thread generation
-- CLI tool and JavaScript/TypeScript API
-- Support for custom templates and prompts
+- Authenticate with GitHub via Clerk
+- Browse repository file tree and preview raw file contents
+- Generate a structured README using OpenAI embeddings and file search
+- Download generated README as Markdown
+- Responsive UI built with React, Tailwind CSS, and Radix UI
+- Concurrency control for efficient processing
 
 ## Installation
 
 ```bash
-# Install globally
-npm install -g expounder
-# or
-yarn global add expounder
+# Clone the repository
+git clone <repository-url>
+cd <repository-folder>
 
-# Install locally in a project
-npm install --save expounder
+# Install dependencies
+npm install
+
+# Start development server
+npm run dev
 ```
 
 ## Configuration
 
-Expounder requires an OpenAI API key. Set it via an environment variable:
-
-```bash
-export OPENAI_API_KEY=your_api_key_here
-```
-
-Optionally, you can create a `.expounderrc.json` in your project root to override defaults:
-
-```json
-{
-  "input": "CHANGELOG.md",
-  "model": "gpt-3.5-turbo-16k",
-  "clusters": 5,
-  "output": {
-    "notion": "notion-release.md",
-    "tweets": "tweet-thread.txt"
-  }
-}
-```
+- OPENAI_API_KEY – API key for OpenAI usage
+- GITHUB_CLIENT_ID – GitHub OAuth App Client ID
+- GITHUB_CLIENT_SECRET – GitHub OAuth App Client Secret
+- NEXT_PUBLIC_BASE_URL – Base URL for OAuth callback (e.g., http://localhost:3000)
 
 ## Usage
 
-### CLI
-
-```bash
-# Run with defaults from .expounderrc.json
-expounder
-
-# Override options
-expounder --input CHANGELOG.md --clusters 4 --notion summary.md --tweets thread.txt
-
-# Short flags
-expounder -i CHANGELOG.md -c 4 -n summary.md -t thread.txt
-```
-
-### API
-
-```javascript
-import expounder from 'expounder';
-
-(async () => {
-  const result = await expounder({
-    input: 'CHANGELOG.md',
-    model: 'gpt-3.5-turbo-16k',
-    clusters: 5,
-    openaiApiKey: process.env.OPENAI_API_KEY
-  });
-
-  // Markdown page for Notion
-  console.log(result.notion);
-
-  // Copy-and-paste tweet thread
-  console.log(result.tweets);
-})();
-```
-
-## Folder Structure
-
-```bash
-.
-├── bin/
-│   └── cli.js         # Command-line entrypoint
-├── src/
-│   ├── parser.js      # CHANGELOG.md parser
-│   ├── embedder.js    # OpenAI embedding calls
-│   ├── clusterer.js   # Commit clustering logic
-│   ├── formatter.js   # Markdown formatting
-│   ├── index.js       # Core API export
-│   └── utils.js       # Shared utilities
-├── tests/             # Jest test suites
-│   ├── parser.test.js
-│   ├── clusterer.test.js
-│   └── formatter.test.js
-├── .expounderrc.json  # Optional config
-├── CHANGELOG.md       # Input changelog
-├── package.json
-├── LICENSE
-└── README.md
-```
-
-## Tests
-
-We use Jest for unit and integration tests. Make sure your OpenAI API key is set for any tests that call the API.
-
-```bash
-npm test
-```
-
-## Roadmap
-
-- v1.0: Stable CLI & core functionality
-- v1.1: Custom templates & prompts
-- v1.2: Direct Notion API publishing
-- v2.0: Plugin system & extensibility
-- v2.1: Additional export formats (HTML, PDF)
-- v3.0: Web UI with drag-and-drop
+- Run in development mode: npm run dev
+- Build for production: npm run build
+- Start production server: npm run start
+- Navigate to http://localhost:3000 and authenticate with GitHub
+- Select a repository, explore files, and click "Generate notes" to download a README
 
 ## Contributing
 
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/YourFeature`)
-3. Write tests for your changes
-4. Ensure all tests pass (`npm test`)
-5. Commit with clear, conventional commit messages
-6. Open a pull request and describe your changes
-
-## License
-
-This project is licensed under the MIT License. See the LICENSE file for details.
+- Fork the repository
+- Create a feature branch: git checkout -b feature/YourFeature
+- Make your changes and commit with clear messages
+- Open a pull request and describe your changes
+- Ensure all CI checks pass before merging
 
 ## Acknowledgements
 
-- Thanks to OpenAI for the embeddings API
-- Mermaid.js for architecture diagram support
-- The Node.js community and all open-source contributors
+- Next.js
+- Clerk (Authentication)
+- Octokit (GitHub API) 
+- OpenAI
+- Tailwind CSS
+- Radix UI

@@ -69,12 +69,26 @@ export async function POST(req: NextRequest) {
     });
 
     const systemPrompt = [
-        `Repository: ${ownerRepo}`,
-        `Description: ${description}`,
-        `Generate a clear, comprehensive README with the sections below.`,
-        `Sections: Title · Tagline · Badges · Overview · Architecture (Mermaid) ·`,
-        `Features · Installation · Configuration · Usage (CLI & API) ·`,
-        `Folder Structure · Tests · Roadmap · Contributing · License · Acknowledgements`,
+        "Analyze the repository at ${ownerRepo}, including its file structure, code, and documentation files.",
+        "Generate a clear, comprehensive README based on the actual content and functionality of the repository.",
+        "Do not rely on the existing repository description or README, as they may be outdated.",
+        "Include the following sections in the README only if they are relevant to the codebase:",
+        "- Title: The name of the repository.",
+        "- Tagline: A brief, one-sentence description of what the repository does.",
+        "- Badges: Include relevant badges (e.g., build status, version, license) right after the title and tagline.",
+        "- Overview: A detailed description of the repository's purpose and key features.",
+        "- Architecture: Provide a Mermaid diagram illustrating the high-level architecture, showing main components and their interactions.",
+        "- Features: List the main features of the tool or library.",
+        "- Installation: Instructions on how to install the tool or library.",
+        "- Configuration: Any configuration options or settings (omit if not applicable).",
+        "- Usage: Detailed usage instructions, covering CLI and/or API if applicable (omit if not relevant).",
+        "- Tests: Information on how to run tests (omit if no tests are present).",
+        "- Roadmap: Future plans or upcoming features.",
+        "- Contributing: Guidelines for contributing to the repository.",
+        "- License: The license under which the repository is released.",
+        "- Acknowledgements: Credits or thanks to contributors or dependencies.",
+        "If a section is not applicable (e.g., no CLI, no tests, no configuration options), omit it.",
+        "Ensure all content is accurate and reflects the actual functionality based on the code and files in the repository."
     ].join("\n");
 
     const response = await openai.responses.create({
