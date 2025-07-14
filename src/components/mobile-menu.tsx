@@ -70,9 +70,9 @@ export function MobileMenu({ faqOpen, setFaqOpen }: { faqOpen: boolean; setFaqOp
                         initial="hidden"
                         animate="show"
                         exit="exit"
-                        className={`fixed inset-x-0 bottom-0 ${HEADER_OFFSET} ${Z} flex flex-col bg-background p-8 overflow-y-auto`}
+                        className={`fixed inset-x-0 bottom-0 ${HEADER_OFFSET} ${Z} flex flex-col bg-background p-4 overflow-y-auto`}
                     >
-                        <div className="flex flex-col gap-4">
+                        <div className="flex flex-col gap-4 p-4">
                             {["About", "Pricing", "Contact", "Features"].map((item, index) => (
                                 <motion.p
                                     key={item}
