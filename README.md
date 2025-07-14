@@ -1,8 +1,8 @@
+![Version](https://img.shields.io/badge/version-0.1.0-blue.svg)
+
 # Expounder Client (Web Dashboard)  
 
 Web dashboard for exploring GitHub repositories and generating README files using OpenAI. 
-
-![Version](https://img.shields.io/badge/version-0.1.0-blue.svg)
 
 ## Overview
 
