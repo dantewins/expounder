@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 export default function LandingPage() {
   return (
     <section className="flex flex-col lg:flex-row items-center justify-center gap-12 p-6 sm:p-12 max-w-6xl w-full mx-auto rounded-3xl bg-background">
-      <div className="flex-1 max-w-lg space-y-6 text-center lg:text-left">
+      <div className="flex-1 max-w-lg space-y-5 text-center lg:text-left sm:space-y-6">
         <Badge variant="outline" className="py-2 px-4 rounded-4xl mx-auto lg:mx-0 w-max hover:cursor-default gap-1">
           <span className="text-sm font-medium">Beta access</span>
         </Badge>

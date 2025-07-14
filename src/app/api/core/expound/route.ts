@@ -1,112 +1,134 @@
 import { NextRequest, NextResponse } from "next/server";
 import { fetchRepoTree, fetchBlobText } from "@/lib/github";
 import OpenAI from "openai";
-import type { ChatCompletionMessageParam } from "openai/resources/chat/completions";
+import pLimit from "p-limit";
 import { readmeSchema } from "@/lib/schemas";
-import { cookies } from "next/headers";
-
-const openai = new OpenAI({ apiKey: process.env.OPEN_AI_KEY! });
 
 export const runtime = "edge";
-export const maxDuration = 60;
+export const maxDuration = 120;
+
+const openai = new OpenAI({
+    apiKey: process.env.OPEN_AI_KEY!,
+});
+
+const MODEL = "o4-mini";
+const CONCURRENCY = 6;
+const CHUNK_BYTES = 80_000;
+const BINARY_RE = /\.(png|jpe?g|gif|svg|ico|pdf|zip|tar|gz|mp[34]|mov|avi|woff2?)$/i;
+
+function* chunk(text: string) {
+    let offset = 0;
+    while (offset < text.length) {
+        yield text.slice(offset, offset + CHUNK_BYTES);
+        offset += CHUNK_BYTES;
+    }
+}
 
 export async function POST(req: NextRequest) {
-    const token = (await cookies()).get("gh_token")?.value;
-    if (!token) return NextResponse.json([], { status: 200 });
-
-    const { ownerRepo, description } = await req.json();
-    if (!ownerRepo || !description) {
-        return NextResponse.json(
-            { error: "Missing ownerRepo or description" },
-            { status: 400 },
-        );
+    const token = req.cookies.get("gh_token")?.value;
+    if (!token) {
+        return NextResponse.json({ error: "GitHub token missing" }, { status: 401 });
     }
 
-    const [owner, repoName] = ownerRepo.split("/");
+    const { ownerRepo, description } = (await req.json()) as {
+        ownerRepo?: string;
+        description?: string;
+    };
 
-    const tree = await fetchRepoTree(token, owner, repoName);
-    const codeFiles = tree.filter(
-        (n: any) =>
-            n.type === "blob" &&
-            n.size! < 100_000 &&
-            !/\.(png|jpe?g|gif|svg|ico|pdf|zip|tar|gz|mp4|mp3|mov|woff2?)$/i.test(
-                n.path,
-            ),
+    if (!ownerRepo) {
+        return NextResponse.json({ error: "Missing ownerRepo" }, { status: 400 });
+    }
+
+    const [owner, repo] = ownerRepo.split("/");
+
+    const tree = await fetchRepoTree(token, owner, repo);
+    const blobs = tree.filter((n: any) => n.type === "blob" && !BINARY_RE.test(n.path));
+
+    const limiter = pLimit(CONCURRENCY);
+    const fileIds: string[] = [];
+
+    await Promise.all(
+        blobs.map((node: any) =>
+            limiter(async () => {
+                const raw = await fetchBlobText(token, owner, repo, node.sha!);
+                let part = 0;
+                for (const slice of chunk(raw)) {
+                    const file = new File([slice], `${node.path.replace(/\//g, "_")}.${part++}.txt`, {
+                        type: "text/plain",
+                    });
+                    const uploaded = await openai.files.create({ file, purpose: "assistants" });
+                    fileIds.push(uploaded.id);
+                }
+            }),
+        ),
     );
 
-    const fileSummaries: string[] = [];
-
-    for (const node of codeFiles) {
-        const content = await fetchBlobText(token, owner, repoName, node.sha!);
-        if (!content.trim()) continue;
-
-        const chunkPrompt: ChatCompletionMessageParam[] = [
-            { role: "system", content: "You are an expert software analyst." },
-            {
-                role: "user",
-                content: `File path: ${node.path}\n\nSummarise the intention and key API surface of this file in ≤ 120 words. Omit obvious framework boilerplate.`,
-            },
-            { role: "user", content: "```" + content.slice(0, 10_000) + "```" },
-        ];
-
-        const { choices } = await openai.chat.completions.create({
-            model: "o4-mini",
-            messages: chunkPrompt,
-            max_completion_tokens: 1000,
-        });
-
-        fileSummaries.push(
-            `◾ **${node.path}** – ${choices[0].message.content!.trim()}`,
-        );
-    }
-
-    const synthPrompt: ChatCompletionMessageParam[] = [
-        {
-            role: "system",
-            content:
-                "You are a seasoned open-source maintainer who writes clear, professional README.md files.",
-        },
-        {
-            role: "user",
-            content: `Using the digests below, create a *full* README.md. Follow GitHub conventions and **respond *only* by calling the \`write_readme\` function**.\n\nDigests:\n\n${fileSummaries.join(
-                "\n",
-            )}`,
-        },
-    ];
-
-    const { choices } = await openai.chat.completions.create({
-        model: "o4-mini",
-        messages: synthPrompt,
-        tools: [
-            {
-                type: "function",
-                function: {
-                    name: "write_readme",
-                    description: "Return the README in a strict JSON shape.",
-                    parameters: readmeSchema,
-                },
-            },
-        ],
-        tool_choice: { type: "function", function: { name: "write_readme" } },
-        max_completion_tokens: 2000,
+    const vectorStore = await openai.vectorStores.create({
+        name: `repo_${owner}_${repo}_${Date.now()}`,
+        file_ids: fileIds,
     });
 
-    const toolCall = choices[0].message.tool_calls?.[0];
+    const systemPrompt = [
+        `Repository: ${ownerRepo}`,
+        `Description: ${description}`,
+        `Generate a clear, comprehensive README with the sections below.`,
+        `Sections: Title · Tagline · Badges · Overview · Architecture (Mermaid) ·`,
+        `Features · Installation · Configuration · Usage (CLI & API) ·`,
+        `Folder Structure · Tests · Roadmap · Contributing · License · Acknowledgements`,
+    ].join("\n");
 
-    if (!toolCall) {
-        console.warn("LLM skipped tool call – returning raw content.");
-        const rawReadme = choices[0].message.content ?? "";
-        return NextResponse.json([{ type: "markdown", text: rawReadme }]);
-    }
+    const response = await openai.responses.create({
+        model: MODEL,
+        input: systemPrompt,
+        text: {
+            "format": readmeSchema
+        },
+        reasoning: {
+            "effort": "high"
+        },
+        tools: [
+            {
+                "type": "file_search",
+                "vector_store_ids": [
+                    vectorStore.id
+                ]
+            }
+        ],
+        store: true
+    });
 
-    try {
-        const safeReadme = JSON.parse(toolCall.function.arguments);
-        return NextResponse.json(safeReadme.blocks);
-    } catch (e) {
-        console.error("Failed to parse tool_call arguments:", e);
+    type MessageOutput = Extract<
+        (typeof response)["output"][number],
+        { type: "message" }
+    >;
+
+    const messageItem = response.output?.find(
+        (o): o is MessageOutput => o.type === "message"
+    );
+
+    const messageContent = messageItem?.content
+        .find(part => part.type === "output_text")
+        ?.text;
+
+    if (!messageContent) {
+        console.error("No output_text content found in model response");
         return NextResponse.json(
-            { error: "Malformed tool_call from OpenAI." },
+            { error: "No output_text content found in model response" },
             { status: 500 },
         );
     }
+
+    let blocks;
+    try {
+        const parsed = JSON.parse(messageContent);
+        blocks = parsed.blocks;
+        if (!blocks) {
+            throw new Error("No 'blocks' field found in the parsed response");
+        }
+    } catch (err) {
+        console.error("README parse error:", err);
+        return NextResponse.json({ error: "Failed to parse model response as JSON" }, { status: 500 });
+    }
+
+    return NextResponse.json({ blocks }, { status: 200 });
 }

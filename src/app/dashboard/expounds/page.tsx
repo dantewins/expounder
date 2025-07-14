@@ -12,7 +12,7 @@ import { ReadmeBlock } from "@/lib/schemas";
 
 export default function ExpoundsPage() {
   const [repos, setRepos] = useState<Repo[] | null>(null);
-  const [selectedRepoId, setSelectedRepoId] = useState<string>();
+  const [selectedRepoId, setSelectedRepoId] = useState<string>("");
   const [selectedRepo, setSelectedRepo] = useState<Repo | null>(null);
 
   const [tree, setTree] = useState<FileNode[] | null>(null);
@@ -80,7 +80,10 @@ export default function ExpoundsPage() {
       },
       body: JSON.stringify({ ownerRepo: selectedRepo.fullName, description: selectedRepo.description || "" }),
     });
-    if (res.ok) setSummary(await res.json() as ReadmeBlock[]);
+    if (res.ok) {
+      const json = await res.json();
+      setSummary(json.blocks as ReadmeBlock[]);
+    }
     setLoading(false);
   }
 

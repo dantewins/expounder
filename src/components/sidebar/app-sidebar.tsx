@@ -8,6 +8,7 @@ import {
     IconHelp,
     IconSettings,
     IconBook2,
+    IconTextResize
 } from "@tabler/icons-react"
 
 import { NavMain } from "@/components/sidebar/nav-main"
@@ -44,6 +45,11 @@ const data = {
             title: "Repositories",
             url: "/repo",
             icon: IconBook2,
+        },
+        {
+            title: "Editor",
+            url: "/editor",
+            icon: IconTextResize,
         },
     ],
     navSecondary: [

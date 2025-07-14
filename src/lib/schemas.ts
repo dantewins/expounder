@@ -1,82 +1,110 @@
 export const readmeSchema = {
-    type: "object",
-    properties: {
-        blocks: {
-            type: "array",
-            minItems: 1,
-            items: {
-                oneOf: [
-                    {
-                        type: "object",
-                        properties: {
-                            type: { const: "heading" },
-                            level: { type: "integer", minimum: 1, maximum: 6 },
-                            text: { type: "string" },
+    "type": "json_schema",
+    "name": "readme",
+    "schema": {
+        "type": "object",
+        "properties": {
+            "blocks": {
+                "type": "array",
+                "description": "Array of blocks that make up the README document. Each block may be a heading, paragraph, list, code, image, or table.",
+                "minItems": 1,
+                "items": {
+                    "type": "object",
+                    "description": "A content block in the README",
+                    "properties": {
+                        "type": {
+                            "type": "string",
+                            "description": "Type of content block",
+                            "enum": [
+                                "heading",
+                                "paragraph",
+                                "list",
+                                "code",
+                                "image",
+                                "table"
+                            ]
                         },
-                        required: ["type", "level", "text"],
-                    },
-                    {
-                        type: "object",
-                        properties: {
-                            type: { const: "paragraph" },
-                            text: { type: "string" },
+                        "level": {
+                            "type": "integer",
+                            "description": "Heading level (used if type is 'heading', 1-6)",
+                            "minimum": 1,
+                            "maximum": 6
                         },
-                        required: ["type", "text"],
-                    },
-                    {
-                        type: "object",
-                        properties: {
-                            type: { const: "list" },
-                            ordered: { type: "boolean", default: false },
-                            items: {
-                                type: "array",
-                                items: { type: "string" },
-                            },
+                        "text": {
+                            "type": "string",
+                            "description": "Textual content (used by paragraphs and headings)"
                         },
-                        required: ["type", "items"],
-                    },
-                    {
-                        type: "object",
-                        properties: {
-                            type: { const: "code" },
-                            language: { type: "string", default: "" },
-                            code: { type: "string" },
+                        "ordered": {
+                            "type": "boolean",
+                            "description": "Whether the list is ordered (true) or unordered (false); used for list blocks"
                         },
-                        required: ["type", "code"],
-                    },
-                    {
-                        type: "object",
-                        properties: {
-                            type: { const: "image" },
-                            url: { type: "string", format: "uri" },
-                            alt: { type: "string", default: "" },
+                        "items": {
+                            "type": "array",
+                            "description": "List of list items (used if type is 'list')",
+                            "items": {
+                                "type": "string",
+                                "description": "A list item"
+                            }
                         },
-                        required: ["type", "url"],
-                    },
-
-                    {
-                        type: "object",
-                        properties: {
-                            type: { const: "table" },
-                            headers: {
-                                type: "array",
-                                items: { type: "string" },
-                            },
-                            rows: {
-                                type: "array",
-                                items: {
-                                    type: "array",
-                                    items: { type: "string" },
-                                },
-                            },
+                        "language": {
+                            "type": "string",
+                            "description": "Programming language identifier for the code block"
                         },
-                        required: ["type", "headers", "rows"],
+                        "code": {
+                            "type": "string",
+                            "description": "Source code for code block"
+                        },
+                        "url": {
+                            "type": "string",
+                            "description": "URL of the image (used if type is 'image')"
+                        },
+                        "alt": {
+                            "type": "string",
+                            "description": "Alternative text for the image"
+                        },
+                        "headers": {
+                            "type": "array",
+                            "description": "Array of table header labels (used for table blocks)",
+                            "items": {
+                                "type": "string",
+                                "description": "Header label"
+                            }
+                        },
+                        "rows": {
+                            "type": "array",
+                            "description": "Table rows, each as an array of cell values (used for table blocks)",
+                            "items": {
+                                "type": "array",
+                                "items": {
+                                    "type": "string",
+                                    "description": "Table cell value"
+                                }
+                            }
+                        }
                     },
-                ],
-            },
+                    "required": [
+                        "type",
+                        "level",
+                        "text",
+                        "ordered",
+                        "items",
+                        "language",
+                        "code",
+                        "url",
+                        "alt",
+                        "headers",
+                        "rows"
+                    ],
+                    "additionalProperties": false
+                }
+            }
         },
+        "required": [
+            "blocks"
+        ],
+        "additionalProperties": false
     },
-    required: ["blocks"],
+    "strict": true
 } as const;
 
 type HeadingBlock = { type: "heading"; level: 1 | 2 | 3 | 4 | 5 | 6; text: string };
