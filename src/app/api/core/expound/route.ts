@@ -77,7 +77,7 @@ export async function POST(req: NextRequest) {
         "- Tagline: A brief, one-sentence description of what the repository does.",
         "- Badges: Include relevant badges (e.g., build status, version, license) right after the title and tagline.",
         "- Overview: A detailed description of the repository's purpose and key features.",
-        "- Architecture: Provide a Mermaid diagram illustrating the high-level architecture, showing main components and their interactions.",
+        "- Architecture: Provide a Mermaid diagram illustrating the high-level architecture, showing main components and their interactions. Ensure correct Mermaid syntax, using standard node shapes like rectangles `id[label]`, and enclose labels with special characters in quotes.",
         "- Features: List the main features of the tool or library.",
         "- Installation: Instructions on how to install the tool or library.",
         "- Configuration: Any configuration options or settings (omit if not applicable).",
@@ -88,7 +88,8 @@ export async function POST(req: NextRequest) {
         "- License: The license under which the repository is released.",
         "- Acknowledgements: Credits or thanks to contributors or dependencies.",
         "If a section is not applicable (e.g., no CLI, no tests, no configuration options), omit it.",
-        "Ensure all content is accurate and reflects the actual functionality based on the code and files in the repository."
+        "Ensure all content is accurate and reflects the actual functionality based on the code and files in the repository.",
+        "Badges must be on ONE line with a single preceding space (e.g. \"[![Build]...](...) \")."
     ].join("\n");
 
     const response = await openai.responses.create({
