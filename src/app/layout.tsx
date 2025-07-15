@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Varela } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
+import { Toaster } from "@/components/ui/sonner"
 import "./globals.css";
 
 const varela = Varela({
@@ -30,6 +31,7 @@ export default function RootLayout({
           className={`${varela.className} antialiased`}
         >
           {children}
+          <Toaster richColors position="bottom-right" />
         </body>
       </html>
     </ClerkProvider>

@@ -9,6 +9,7 @@ import { Repo } from "@/lib/github";
 import { FileTree, FileNode } from "@/components/file-tree";
 import { ReadmeBlock } from "@/lib/schemas";
 import { Markdown } from "@/components/markdown";
+import { toast } from "sonner"
 
 export default function ExpoundsPage() {
   const [repos, setRepos] = useState<Repo[] | null>(null);
@@ -102,6 +103,8 @@ export default function ExpoundsPage() {
       const blocks = json.blocks as ReadmeBlock[];
       setSummary(blocks);
       handleDownload(blocks);
+    } else {
+      toast.error("Couldn’t generate README", { description: 'You\'re getting ratelimited by OpenAI. Try again later.' });
     }
     setLoading(false);
   }
