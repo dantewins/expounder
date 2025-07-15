@@ -4,8 +4,8 @@ import OpenAI from "openai";
 import pLimit from "p-limit";
 import { readmeSchema } from "@/lib/schemas";
 
-export const runtime = "edge";
-export const maxDuration = 120;
+export const runtime = "nodejs";
+export const maxDuration = 300;
 
 const openai = new OpenAI({
     apiKey: process.env.OPEN_AI_KEY!,
