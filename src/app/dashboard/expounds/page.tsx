@@ -21,7 +21,6 @@ export default function ExpoundsPage() {
   const [fileText, setFileText] = useState<string>("");
 
   const [summary, setSummary] = useState<ReadmeBlock[] | null>(null);
-  const [previewOpen, setPreviewOpen] = useState(false);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
