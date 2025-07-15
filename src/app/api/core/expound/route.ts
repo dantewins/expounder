@@ -30,9 +30,8 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: "GitHub token missing" }, { status: 401 });
     }
 
-    const { ownerRepo, description } = (await req.json()) as {
+    const { ownerRepo } = (await req.json()) as {
         ownerRepo?: string;
-        description?: string;
     };
 
     if (!ownerRepo) {

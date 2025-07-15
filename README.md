@@ -1,14 +1,16 @@
-# Expounder Client (Web Dashboard)
+# Expounder Client
 
 Web dashboard for exploring GitHub repositories and generating README files using OpenAI.
 
- ![Version](https://img.shields.io/badge/version-0.1.0-blue.svg)
+ ![Version](https://img.shields.io/badge/version-0.1.0-blue.svg) 
 
 ## Overview
 
-Expounder Client is a Next.js (v15.3.4) web application that enables authenticated users to browse their GitHub repositories, inspect file structures, preview file contents, and generate clear, comprehensive README files for any repository. It uses Clerk for authentication, Octokit for GitHub API interactions, and OpenAI’s embedding and file search capabilities to analyze and create README content at scale.
+Expounder Client is a Next.js (v15.3.4) web application that enables authenticated users to browse their GitHub repositories, inspect file structures, preview file contents, and generate clear, comprehensive README files for any repository. It uses Clerk for authentication, Octokit for GitHub API interactions, and OpenAI’s embedding and file search capabilities to analyze and create README content at scale. 
 
 ## Architecture
+
+High-level architecture of the application: 
 
 ```mermaid
 flowchart TD
@@ -33,6 +35,8 @@ flowchart TD
 
 ## Features
 
+Main features include: 
+
 - Authenticate with GitHub via Clerk
 - Browse and preview repository file trees
 - Generate structured README using OpenAI embeddings and file search
@@ -49,22 +53,28 @@ npm install
 npm run dev
 ```
 
+These commands will set up and run the application locally. 
+
 ## Configuration
 
-- OPEN_AI_KEY – API key for OpenAI usage 
-- GITHUB_CLIENT_ID – GitHub OAuth App Client ID 
-- GITHUB_CLIENT_SECRET – GitHub OAuth App Client Secret 
-- NEXT_PUBLIC_BASE_URL – Base URL for OAuth callback (e.g., http://localhost:3000) 
+The following environment variables must be set: 
+
+- OPEN_AI_KEY – API key for OpenAI
+- GITHUB_CLIENT_ID – GitHub OAuth App Client ID
+- GITHUB_CLIENT_SECRET – GitHub OAuth App Client Secret
+- NEXT_PUBLIC_BASE_URL – Base URL for OAuth callback (e.g., http://localhost:3000)
 
 ## Usage
 
-Run the application in development mode and navigate to http://localhost:3000. Authenticate with your GitHub account, select a repository, explore files, and click “Generate notes” to create and download a comprehensive README file.
+Run the application in development mode and navigate to http://localhost:3000. Authenticate with your GitHub account, select a repository, explore files, and click “Generate notes” to create and download a comprehensive README file. 
 
 ```bash
 npm run dev
 ```
 
 ## Contributing
+
+To contribute to Expounder Client, follow these steps: 
 
 - Fork the repository
 - Create a feature branch: git checkout -b feature/YourFeature
@@ -75,8 +85,8 @@ npm run dev
 ## Acknowledgements
 
 - Next.js
-- Clerk (Authentication)
-- Octokit (GitHub API)
+- Clerk
+- Octokit
 - OpenAI
 - Tailwind CSS
 - Radix UI

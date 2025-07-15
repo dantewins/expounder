@@ -9,12 +9,12 @@ export function FaqDialog({ open, setOpen, isMobile = false }: { open: boolean; 
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
                 <Button variant="secondary" size={isMobile ? "lg": "sm"} className={isMobile ? "w-full text-lg mb-4" : ''}>
-                    FAQ
+                    Questions
                 </Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-lg">
                 <DialogHeader>
-                    <DialogTitle>FAQ</DialogTitle>
+                    <DialogTitle>Questions</DialogTitle>
                     <DialogDescription>
                         Answers to common questions about Expounder.
                     </DialogDescription>
@@ -23,8 +23,7 @@ export function FaqDialog({ open, setOpen, isMobile = false }: { open: boolean; 
                     <AccordionItem value="q1">
                         <AccordionTrigger>Is Expounder free?</AccordionTrigger>
                         <AccordionContent>
-                            Yes! The core features are free for personal projects. We may
-                            add optional paid tiers in the future.
+                            Yes! The core features are free for everyone.
                         </AccordionContent>
                     </AccordionItem>
                     <AccordionItem value="q2">
@@ -37,7 +36,7 @@ export function FaqDialog({ open, setOpen, isMobile = false }: { open: boolean; 
                     <AccordionItem value="q3">
                         <AccordionTrigger>Which AI model do you use?</AccordionTrigger>
                         <AccordionContent>
-                            We use OpenAI GPT‑4o for clustering and summarising commits.
+                            We use OpenAI's models for clustering and summarising commits.
                         </AccordionContent>
                     </AccordionItem>
                 </Accordion>

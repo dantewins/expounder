@@ -8,7 +8,7 @@ import {
     IconHelp,
     IconSettings,
     IconBook2,
-    IconTextResize
+    IconWorld
 } from "@tabler/icons-react"
 
 import { NavMain } from "@/components/sidebar/nav-main"
@@ -42,9 +42,9 @@ const data = {
             icon: IconBook2,
         },
         {
-            title: "Editor",
-            url: "/editor",
-            icon: IconTextResize,
+            title: "Atlas",
+            url: "/atlas",
+            icon: IconWorld,
         },
     ],
     navSecondary: [

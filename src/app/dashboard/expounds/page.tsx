@@ -104,6 +104,23 @@ export default function ExpoundsPage() {
     setFileText(res.ok ? await res.text() : "Unable to fetch file.");
   }
 
+  function handleDownload(blocks: ReadmeBlock[]) {
+    const markdown = blocksToMarkdown(blocks);
+    const blob = new Blob([markdown], {
+      type: "text/markdown;charset=utf-8",
+    });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.style.display = "none";
+    a.download = "README.md";
+    a.rel = "noopener";
+    a.href = url;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 0);
+  }
+
   async function handleGenerate() {
     if (!selectedRepo) return;
     setLoading(true);
@@ -120,16 +137,7 @@ export default function ExpoundsPage() {
       const json = await res.json();
       const blocks = json.blocks as ReadmeBlock[];
       setSummary(blocks);
-      const markdown = blocksToMarkdown(blocks);
-      const blob = new Blob([markdown], { type: "text/markdown" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "README.md";
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
+      handleDownload(blocks);
     }
     setLoading(false);
   }
@@ -138,7 +146,7 @@ export default function ExpoundsPage() {
     <>
       <Card>
         <CardHeader>
-          <CardTitle>Select repository</CardTitle>
+          <CardTitle>Select a repository</CardTitle>
           <CardDescription>
             Pick a repo, browse its tree, preview files, then generate notes.
           </CardDescription>
@@ -211,93 +219,11 @@ export default function ExpoundsPage() {
           Generate notes
         </Button>
         {summary && (
-          <Button variant="secondary" onClick={() => setPreviewOpen(!previewOpen)} className="w-full lg:w-[150px]">
-            Preview
+          <Button variant="secondary" onClick={() => { handleDownload(summary) }} className="w-full lg:w-[150px]">
+            Download
           </Button>
         )}
       </div>
-      {summary && previewOpen && (
-        <section className="space-y-6">
-          {summary.map((block, idx) => {
-            switch (block.type) {
-              case "heading": {
-                const H = `h${block.level}` as keyof JSX.IntrinsicElements;
-                return (
-                  <H key={idx} className="font-semibold scroll-mt-20">
-                    {block.text}
-                  </H>
-                );
-              }
-              case "paragraph":
-                return (
-                  <p key={idx} className="leading-relaxed">
-                    {block.text}
-                  </p>
-                );
-              case "list": {
-                const ListTag = (block.ordered ? "ol" : "ul") as keyof JSX.IntrinsicElements;
-                return (
-                  <ListTag
-                    key={idx}
-                    className={`list-inside ${block.ordered ? "list-decimal" : "list-disc"} space-y-1`}
-                  >
-                    {block.items.map((li, j) => (
-                      <li key={j}>{li}</li>
-                    ))}
-                  </ListTag>
-                );
-              }
-              case "code":
-                return (
-                  <pre
-                    key={idx}
-                    className="rounded bg-muted/40 p-3 overflow-auto text-sm font-mono"
-                  >
-                    <code className={`language-${block.language ?? ""}`}>{block.code}</code>
-                  </pre>
-                );
-              case "image":
-                return (
-                  <figure key={idx} className="flex flex-col items-center gap-1">
-                    <img src={block.url} alt={block.alt ?? ""} className="max-w-full rounded" />
-                    {block.alt && (
-                      <figcaption className="text-sm text-muted-foreground">{block.alt}</figcaption>
-                    )}
-                  </figure>
-                );
-              case "table":
-                return (
-                  <div key={idx} className="overflow-x-auto">
-                    <table className="min-w-full border text-sm">
-                      <thead>
-                        <tr>
-                          {block.headers.map((h, j) => (
-                            <th key={j} className="border px-2 py-1 font-medium text-left">
-                              {h}
-                            </th>
-                          ))}
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {block.rows.map((row, r) => (
-                          <tr key={r}>
-                            {row.map((cell, c) => (
-                              <td key={c} className="border px-2 py-1">
-                                {cell}
-                              </td>
-                            ))}
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                );
-              default:
-                return null;
-            }
-          })}
-        </section>
-      )}
       {loading && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/60 backdrop-blur-sm">
           <Loader2 className="h-8 w-8 animate-spin" />
