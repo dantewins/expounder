@@ -192,8 +192,9 @@ export default function ExpoundsPage() {
         )}
       </div>
       {loading && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/60 backdrop-blur-sm">
+        <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-background/60 backdrop-blur-sm gap-2">
           <Loader2 className="h-8 w-8 animate-spin" />
+          <p className="text-sm text-muted-foreground">This may take a minute...</p>
         </div>
       )}
     </>
