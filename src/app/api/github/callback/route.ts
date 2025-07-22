@@ -30,5 +30,5 @@ export async function GET(req: NextRequest) {
         secure: process.env.NODE_ENV === "production",
     });
 
-    return NextResponse.redirect(`${process.env.NEXT_PUBLIC_BASE_URL}/dashboard`);
+    return NextResponse.redirect(`${process.env.NEXT_PUBLIC_BASE_URL}/dashboard/expounds`);
 }

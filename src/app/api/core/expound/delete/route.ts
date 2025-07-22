@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
+import { deleteFromDropbox } from "@/lib/dropbox";
 
 export async function DELETE(req: NextRequest) {
     const { userId } = await auth();
@@ -21,32 +22,5 @@ export async function DELETE(req: NextRequest) {
 
     const dropboxPath = `/expounder/README\`${userId}\`${owner}\`${repo}\`${timestamp}.md`;
 
-    if (process.env.DROPBOX_ACCESS_TOKEN) {
-        try {
-            const deleteResponse = await fetch("https://api.dropboxapi.com/2/files/delete_v2", {
-                method: "POST",
-                headers: {
-                    Authorization: `Bearer ${process.env.DROPBOX_ACCESS_TOKEN}`,
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                    path: dropboxPath,
-                }),
-            });
-
-            if (!deleteResponse.ok) {
-                const errorData = await deleteResponse.json();
-                console.error("Dropbox delete failed:", errorData);
-                return NextResponse.json({ error: "Failed to delete file" }, { status: 500 });
-            }
-
-            return NextResponse.json({ success: true }, { status: 200 });
-        } catch (error) {
-            console.error("Error deleting from Dropbox:", error);
-            return NextResponse.json({ error: "Internal server error" }, { status: 500 });
-        }
-    } else {
-        console.warn("DROPBOX_ACCESS_TOKEN not found. Skipping.");
-        return NextResponse.json({ error: "Dropbox configuration missing" }, { status: 500 });
-    }
+    return await deleteFromDropbox(dropboxPath);
 }

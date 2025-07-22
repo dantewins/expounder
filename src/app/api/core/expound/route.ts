@@ -5,6 +5,7 @@ import OpenAI from "openai";
 import pLimit from "p-limit";
 import { readmeSchema, ReadmeBlock } from "@/lib/schemas";
 import { Markdown } from "@/components/markdown";
+import { uploadToDropbox } from "@/lib/dropbox";
 
 export const runtime = "nodejs";
 export const maxDuration = 300;
@@ -157,37 +158,13 @@ export async function POST(req: NextRequest) {
         type: "text/markdown;charset=utf-8",
     });
 
-    if (process.env.DROPBOX_ACCESS_TOKEN) {
-        const timestamp = Date.now();
-        const dropboxPath = `/expounder/README\`${userId}\`${owner}\`${repo}\`${timestamp}.md`;
-        try {
-            const uploadResponse = await fetch('https://content.dropboxapi.com/2/files/upload', {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${process.env.DROPBOX_ACCESS_TOKEN}`,
-                    'Dropbox-API-Arg': JSON.stringify({
-                        path: dropboxPath,
-                        mode: 'overwrite',
-                        autorename: true,
-                        mute: false,
-                    }),
-                    'Content-Type': 'application/octet-stream',
-                },
-                body: blob,
-            });
+    const timestamp = Date.now();
+    const dropboxPath = `/expounder/README\`${userId}\`${owner}\`${repo}\`${timestamp}.md`;
 
-            if (!uploadResponse.ok) {
-                const errorData = await uploadResponse.json();
-                console.error('Dropbox upload failed:', errorData);
-                return NextResponse.json({ error: "Failed to upload README to Dropbox" }, { status: 500 });
-            } else {
-                console.log('Successfully uploaded README to Dropbox');
-            }
-        } catch (uploadError) {
-            console.error('Error during Dropbox upload:', uploadError);
-        }
-    } else {
-        console.warn('DROPBOX_ACCESS_TOKEN not found in environment variables. Skipping upload.');
+    const uploadSuccess = await uploadToDropbox(dropboxPath, blob);
+
+    if (!uploadSuccess) {
+        console.warn("Dropbox upload failed, but continuing with response");
     }
 
     return NextResponse.json({ blocks }, { status: 200 });
