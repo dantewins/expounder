@@ -1,18 +1,9 @@
 "use client"
 
 import * as React from "react"
-import {
-    IconDashboard,
-    IconFiles,
-    IconBrandGithub,
-    IconHelp,
-    IconSettings,
-    IconBook2,
-    IconWorld
-} from "@tabler/icons-react"
+
 
 import { NavMain } from "@/components/sidebar/nav-main"
-import { NavSecondary } from "@/components/sidebar/nav-secondary"
 import { NavUser } from "@/components/sidebar/nav-user"
 import {
     Sidebar,
@@ -23,48 +14,6 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
 } from "@/components/ui/sidebar"
-
-const data = {
-    navMain: [
-        {
-            title: "Dashboard",
-            url: "",
-            icon: IconDashboard,
-        },
-        {
-            title: "Expounds",
-            url: "/expounds",
-            icon: IconFiles,
-        },
-        {
-            title: "Repositories",
-            url: "/repo",
-            icon: IconBook2,
-        },
-        {
-            title: "Atlas",
-            url: "/atlas",
-            icon: IconWorld,
-        },
-    ],
-    navSecondary: [
-        {
-            title: "Reconnect",
-            url: "#",
-            icon: IconBrandGithub,
-        },
-        {
-            title: "Settings",
-            url: "#",
-            icon: IconSettings,
-        },
-        {
-            title: "Get Help",
-            url: "#",
-            icon: IconHelp,
-        },
-    ],
-}
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     return (
@@ -84,8 +33,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 </SidebarMenu>
             </SidebarHeader>
             <SidebarContent>
-                <NavMain items={data.navMain} />
-                <NavSecondary items={data.navSecondary} className="mt-auto" />
+                <NavMain />
             </SidebarContent>
             <SidebarFooter>
                 <NavUser />

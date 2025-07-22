@@ -1,12 +1,8 @@
 "use client"
 
 import {
-    IconCreditCard,
-    IconDotsVertical,
+    IconChevronDown,
     IconLogout,
-    IconNotification,
-    IconUserCircle,
-    IconLoader2,
 } from "@tabler/icons-react"
 
 import {
@@ -17,7 +13,6 @@ import {
 import {
     DropdownMenu,
     DropdownMenuContent,
-    DropdownMenuGroup,
     DropdownMenuItem,
     DropdownMenuLabel,
     DropdownMenuSeparator,
@@ -26,11 +21,12 @@ import {
 import {
     SidebarMenu,
     SidebarMenuButton,
-    SidebarMenuItem,
     useSidebar,
+    SidebarMenuItem,
 } from "@/components/ui/sidebar"
 import { useClerk, useUser } from "@clerk/nextjs"
-import { useCallback } from "react"
+import { useCallback, useState } from "react"
+import { clsx } from "clsx"
 
 export function NavUser() {
     const { user, isLoaded } = useUser();
@@ -41,6 +37,8 @@ export function NavUser() {
         clerk.signOut({ redirectUrl: "/" });
     }, [clerk]);
 
+    const [open, setOpen] = useState(false);
+
     if (!isLoaded) {
         return null;
     }
@@ -48,7 +46,7 @@ export function NavUser() {
     return (
         <SidebarMenu>
             <SidebarMenuItem>
-                <DropdownMenu>
+                <DropdownMenu open={open} onOpenChange={setOpen}>
                     <DropdownMenuTrigger asChild>
                         <SidebarMenuButton
                             size="lg"
@@ -63,12 +61,17 @@ export function NavUser() {
                                     {user?.emailAddresses[0].emailAddress}
                                 </span>
                             </div>
-                            <IconDotsVertical className="ml-auto size-4" />
+                            <IconChevronDown 
+                                className={clsx(
+                                    "ml-auto size-4 transition-transform duration-200",
+                                    open && "rotate-180"
+                                )} 
+                            />
                         </SidebarMenuButton>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent
-                        className="w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg"
-                        side={isMobile ? "bottom" : "right"}
+                        className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg"
+                        side={isMobile ? "bottom" : "top"}
                         align="end"
                         sideOffset={4}
                     >
@@ -86,21 +89,6 @@ export function NavUser() {
                                 </div>
                             </div>
                         </DropdownMenuLabel>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuGroup>
-                            <DropdownMenuItem>
-                                <IconUserCircle />
-                                Account
-                            </DropdownMenuItem>
-                            <DropdownMenuItem>
-                                <IconCreditCard />
-                                Billing
-                            </DropdownMenuItem>
-                            <DropdownMenuItem>
-                                <IconNotification />
-                                Notifications
-                            </DropdownMenuItem>
-                        </DropdownMenuGroup>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem onClick={handleSignOut}>
                             <IconLogout />

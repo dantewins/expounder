@@ -22,7 +22,7 @@ export default function LandingPage() {
           for Notion, Markdown, and X — instantly.
         </p>
         <Button size="lg" asChild>
-          <Link href="/dashboard">Get started</Link>
+          <Link href="/dashboard/expounds">Get started</Link>
         </Button>
       </div>
       <div className="relative flex-1 w-full aspect-square max-w-md hidden lg:block ">

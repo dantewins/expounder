@@ -105,8 +105,13 @@ export default function ExpoundsPage() {
       handleDownload(blocks);
     } else {
       toast.error("Couldn’t generate README", { description: 'You\'re getting ratelimited by OpenAI. Try again later.' });
+      return;
     }
     setLoading(false);
+
+    toast.success("README generated", {
+      description: "Click the download button to save it."
+    });
   }
 
   return (

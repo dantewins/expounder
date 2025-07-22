@@ -121,7 +121,7 @@ export function MobileMenu({ faqOpen, setFaqOpen }: { faqOpen: boolean; setFaqOp
                                         asChild
                                         className="w-full text-lg mb-4"
                                     >
-                                        <Link href="/dashboard" onClick={() => setOpen(false)}>
+                                        <Link href="/dashboard/expounds" onClick={() => setOpen(false)}>
                                             Dashboard
                                         </Link>
                                     </Button>

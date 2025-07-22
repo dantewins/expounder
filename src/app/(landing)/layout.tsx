@@ -28,7 +28,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
             </SignedOut>
             <SignedIn>
               <Button variant="secondary" size="sm" asChild>
-                <Link href="/dashboard">Dashboard</Link>
+                <Link href="/dashboard/expounds">Dashboard</Link>
               </Button>
               <Button size="sm" onClick={handleSignOut}>
                 Sign out

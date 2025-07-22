@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
+import { auth } from "@clerk/nextjs/server";
 import { fetchRepoTree, fetchBlobText } from "@/lib/github";
 import OpenAI from "openai";
 import pLimit from "p-limit";
-import { readmeSchema } from "@/lib/schemas";
+import { readmeSchema, ReadmeBlock } from "@/lib/schemas";
+import { Markdown } from "@/components/markdown";
 
 export const runtime = "nodejs";
 export const maxDuration = 300;
@@ -25,6 +27,11 @@ function* chunk(text: string) {
 }
 
 export async function POST(req: NextRequest) {
+    const { userId } = await auth();
+    if (!userId) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const token = req.cookies.get("gh_token")?.value;
     if (!token) {
         return NextResponse.json({ error: "GitHub token missing" }, { status: 401 });
@@ -68,7 +75,7 @@ export async function POST(req: NextRequest) {
     });
 
     const systemPrompt = [
-        "Analyze the repository at ${ownerRepo}, including its file structure, code, and documentation files.",
+        `Analyze the repository at ${ownerRepo}, including its file structure, code, and documentation files.`,
         "Generate a clear, comprehensive README based on the actual content and functionality of the repository.",
         "Do not rely on the existing repository description or README, as they may be outdated.",
         "Use a professional yet approachable tone, ensuring the language is clear and accessible to developers of various skill levels.",
@@ -132,7 +139,7 @@ export async function POST(req: NextRequest) {
         );
     }
 
-    let blocks;
+    let blocks: ReadmeBlock[];
     try {
         const parsed = JSON.parse(messageContent);
         blocks = parsed.blocks;
@@ -142,6 +149,45 @@ export async function POST(req: NextRequest) {
     } catch (err) {
         console.error("README parse error:", err);
         return NextResponse.json({ error: "Failed to parse model response as JSON" }, { status: 500 });
+    }
+
+    const markdown = Markdown(blocks);
+
+    const blob = new Blob([markdown], {
+        type: "text/markdown;charset=utf-8",
+    });
+
+    if (process.env.DROPBOX_ACCESS_TOKEN) {
+        const timestamp = Date.now();
+        const dropboxPath = `/expounder/README\`${userId}\`${owner}\`${repo}\`${timestamp}.md`;
+        try {
+            const uploadResponse = await fetch('https://content.dropboxapi.com/2/files/upload', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${process.env.DROPBOX_ACCESS_TOKEN}`,
+                    'Dropbox-API-Arg': JSON.stringify({
+                        path: dropboxPath,
+                        mode: 'overwrite',
+                        autorename: true,
+                        mute: false,
+                    }),
+                    'Content-Type': 'application/octet-stream',
+                },
+                body: blob,
+            });
+
+            if (!uploadResponse.ok) {
+                const errorData = await uploadResponse.json();
+                console.error('Dropbox upload failed:', errorData);
+                return NextResponse.json({ error: "Failed to upload README to Dropbox" }, { status: 500 });
+            } else {
+                console.log('Successfully uploaded README to Dropbox');
+            }
+        } catch (uploadError) {
+            console.error('Error during Dropbox upload:', uploadError);
+        }
+    } else {
+        console.warn('DROPBOX_ACCESS_TOKEN not found in environment variables. Skipping upload.');
     }
 
     return NextResponse.json({ blocks }, { status: 200 });
