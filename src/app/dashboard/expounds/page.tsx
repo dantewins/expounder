@@ -10,6 +10,7 @@ import { FileTree, FileNode } from "@/components/file-tree";
 import { ReadmeBlock } from "@/lib/schemas";
 import { Markdown } from "@/components/markdown";
 import { toast } from "sonner"
+import { useExpounds } from "@/contexts/expound-context"; // Adjust path as needed
 
 export default function ExpoundsPage() {
   const [repos, setRepos] = useState<Repo[] | null>(null);
@@ -23,6 +24,7 @@ export default function ExpoundsPage() {
 
   const [summary, setSummary] = useState<ReadmeBlock[] | null>(null);
   const [loading, setLoading] = useState(false);
+  const { refresh } = useExpounds();
 
   useEffect(() => {
     (async () => {
@@ -103,6 +105,7 @@ export default function ExpoundsPage() {
       const blocks = json.blocks as ReadmeBlock[];
       setSummary(blocks);
       handleDownload(blocks);
+      refresh(); // Refresh the expounds list in NavMain
     } else {
       toast.error("Couldn’t generate README", { description: 'You\'re getting ratelimited by OpenAI. Try again later.' });
       setLoading(false);

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Varela } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
 import { Toaster } from "@/components/ui/sonner"
+import { ExpoundProvider } from "@/contexts/expound-context";
 import "./globals.css";
 
 const varela = Varela({
@@ -31,14 +32,16 @@ export default function RootLayout({
         variables: { colorPrimary: "#4f46e5" },
       }}
     >
-      <html lang="en">
-        <body
-          className={`${varela.className} antialiased`}
-        >
-          {children}
-          <Toaster richColors position="bottom-right" />
-        </body>
-      </html>
+      <ExpoundProvider>
+        <html lang="en">
+          <body
+            className={`${varela.className} antialiased`}
+          >
+            {children}
+            <Toaster richColors position="bottom-right" />
+          </body>
+        </html>
+      </ExpoundProvider>
     </ClerkProvider>
   );
 }

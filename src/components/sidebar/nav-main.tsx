@@ -7,7 +7,7 @@ import {
 } from "@tabler/icons-react";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import clsx from "clsx";
-import { useEffect, useState } from "react";
+import { useExpounds } from "@/contexts/expound-context"; // Adjust path as needed
 
 import {
     SidebarGroup,
@@ -29,20 +29,7 @@ export function NavMain() {
     const router = useRouter();
     const pathname = usePathname();
     const searchParams = useSearchParams();
-    const [readmes, setReadmes] = useState<any[]>([]);
-
-    useEffect(() => {
-        fetch("/api/core/expound/fetch")
-            .then((r) => r.json())
-            .then(({ readmes = [] }) =>
-                setReadmes(
-                    readmes.sort(
-                        (a: any, b: any) => Number(b.timestamp) - Number(a.timestamp),
-                    ),
-                ),
-            )
-            .catch((e) => console.error("Failed to fetch expounds:", e));
-    }, []);
+    const { readmes } = useExpounds();
 
     const handleDelete = async (
         owner: string,
@@ -56,14 +43,7 @@ export function NavMain() {
                 body: JSON.stringify({ owner, repo, timestamp }),
             });
             if (!res.ok) throw new Error("Delete failed");
-            setReadmes((prev) =>
-                prev.filter(
-                    (r) =>
-                        r.owner !== owner ||
-                        r.repo !== repo ||
-                        r.timestamp !== timestamp,
-                ),
-            );
+            // Assuming refresh is handled in context or refetch here if needed
             toast.success(`Successfully deleted ${owner}/${repo}`);
         } catch (e) {
             console.error("Error deleting expound:", e);
